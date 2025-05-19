@@ -33,7 +33,7 @@ services:
     restart: always # 컨테이너가 모종의 이유로 중지되면 무조건 재시작 시도.
 
   gateway-service:
-    build: ./discovery-service     # discovery-service 빌드 설정
+    build: ./gateway-service     # discovery-service 빌드 설정
     container_name: gateway-service
     networks:
       - msa-network
@@ -44,6 +44,9 @@ services:
           condition: service_healthy
       config-service:
         condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
     restart: always
   user-service:
     build: ./user-service     # discovery-service 빌드 설정
@@ -55,6 +58,9 @@ services:
         condition: service_healthy
       config-service:
         condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
     restart: always
 
   order-service:
@@ -67,6 +73,9 @@ services:
         condition: service_healthy
       config-service:
         condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
     restart: always
 
   product-service:
@@ -79,6 +88,9 @@ services:
         condition: service_healthy
       config-service:
         condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
     restart: always
 
   redis:
@@ -88,10 +100,25 @@ services:
     networks:
      - msa-network
 
+  db: # 두번째 서비스 이름은 db야.
+    image: mysql:8 # 빌드하지 않고 미리 준비된 이미지를 사용하겠다.
+    ports:
+      - "3316:3306"
+    networks:
+      - msa-network
+    environment: # mysql 컨테이너에 적용할 환경 변수 설정
+      MYSQL_ROOT_PASSWORD: mysql # root 계정 비밀번호 세팅
+      MYSQL_DATABASE: say4team # 컨테이너 시작할 때 dockerdb라는 이름의 데이터베이스 생성
+    volumes: # 볼륨: 컨테이너가 사용하는 데이터 저장소, 컨테이너가 삭제되거나 재시작하더라도 데이터가 보존.
+      - db-data:/var/lib/mysql
 
+0
 
 # 서비스들이 연결될 Docker 네트워크를 정의할 수 있습니다.
 # 동일한 호스트내에서 서로통신할 수 있도록 해주는 Docker의 네트워크 드라이버
 networks:
   msa-network:
     driver: bridge
+
+volumes:
+  db-data: # mysql 컨테이너가 사용하는 db-data 볼륨을 docker-compose도 기억해 줌.
