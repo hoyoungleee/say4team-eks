@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
 
+    //메롱
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
 
