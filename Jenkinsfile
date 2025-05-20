@@ -16,7 +16,7 @@ pipeline{
             steps{
                 script{
                     // 변경된 파일 감지
-                    def changedFiles = sh(script: "git diff --name-only  Head~1 HEAD", returnStdout: true)
+                    def changedFiles = sh(script: "git diff --name-only  HEAD~1 HEAD", returnStdout: true)
                                         .trim()
                                         .split('\n') //변경된 파일을 줄 단위로 분리
 
