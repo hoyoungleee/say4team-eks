@@ -149,8 +149,8 @@ pipeline {
                             cd /home/ubuntu && \\
                             echo "[INFO] ECR 로그인 중..." && \\
                             aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_URL} && \\
-                            echo "[INFO] 이미지 Pull 중: ${env.CHANGED_SERVICES}" && \\
-                            docker-compose pull ${env.CHANGED_SERVICES} && \\
+                            echo "[INFO] 이미지 Pull 중: ${env.CHANGED_SERVICES.replace(",", " ")}" && \\
+                            docker-compose pull ${changed} && \\
                             echo "[INFO] 서비스 재시작 중..." && \\
                             docker-compose up -d ${env.CHANGED_SERVICES}
                         '
