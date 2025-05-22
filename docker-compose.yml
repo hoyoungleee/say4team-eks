@@ -60,7 +60,7 @@ services:
         condition: service_healthy
     restart: always
 
-  order-service:
+  ordering-service:
     image: 940791490007.dkr.ecr.ap-northeast-2.amazonaws.com/ordering-service:latest
     container_name: order-service
     networks:
