@@ -152,7 +152,7 @@ pipeline {
                             echo "[INFO] 이미지 Pull 중: ${env.CHANGED_SERVICES}" && \\
                             docker-compose pull ${env.CHANGED_SERVICES.replace(",", " ")} && \\
                             echo "[INFO] 서비스 재시작 중..." && \\
-                            docker-compose up -d ${env.CHANGED_SERVICES}
+                            docker-compose up -d ${env.CHANGED_SERVICES.replace(",", " ")}
                         '
                     """
                 }
