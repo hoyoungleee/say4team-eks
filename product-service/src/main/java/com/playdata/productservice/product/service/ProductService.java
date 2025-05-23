@@ -10,6 +10,7 @@ import com.playdata.productservice.product.entity.Product;
 import com.playdata.productservice.product.entity.ProductImages;
 import com.playdata.productservice.product.repository.CategoryRepository;
 import com.playdata.productservice.product.repository.ProductRepository;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,8 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final AwsS3Config s3Config;
+
+    private final JPAQueryFactory factory;
 
     public Product productCreate(ProductSaveReqDto dto) throws IOException {
 
