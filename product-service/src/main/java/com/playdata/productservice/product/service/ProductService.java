@@ -10,6 +10,7 @@ import com.playdata.productservice.product.entity.Product;
 import com.playdata.productservice.product.entity.ProductImages;
 import com.playdata.productservice.product.repository.CategoryRepository;
 import com.playdata.productservice.product.repository.ProductRepository;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.playdata.productservice.product.entity.QProduct.product;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +90,28 @@ public class ProductService {
     }
 
     public List<ProductResDto> productList(ProductSearchDto dto, Pageable pageable) {
+
+//      queryDsl 동적 쿼리 및 페이징 예시
+//        BooleanBuilder builder = new BooleanBuilder();
+//        if(dto.getCategory() != null) {
+//            if(dto.getCategory().equals("name")){
+//                builder.and(product.name.contains(dto.getSearchName()));
+//            }
+//            if(dto.getCategory().equals("category")){
+//                builder.and(product.category.contains(dto.getSearchName()));
+//            }
+//        }
+//        List<Product> products = factory
+//                .selectFrom(product)
+//                .where(builder)
+//                .offset(pageable.getOffset())
+//                .limit(pageable.getPageSize())
+//                .fetch();
+//        return products.stream().map(Product::fromEntity).collect(Collectors.toList());
+
+
+
+
         Page<Product> products;
         if ( dto.getSearchType() == null || "ALL".equals(dto.getSearchType())) {
             if (dto.getSearchName() != null && !dto.getSearchName().isEmpty()) {
