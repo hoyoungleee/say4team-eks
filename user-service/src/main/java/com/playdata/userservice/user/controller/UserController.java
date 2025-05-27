@@ -186,6 +186,24 @@ public class UserController {
         return ResponseEntity.ok().body(resDto);
     }
 
+    @PostMapping("/email-valid")
+    public ResponseEntity<?> emailVaild(@RequestBody Map<String, String> map) {
+        String email = map.get("email");
+        log.info("이메일 인증 요청!: {}", map.get("email"));
+        String authNum = userService.mailCheck(email);
+        return ResponseEntity.ok().body(authNum);
+    }
+
+    //인증코드 검증 요청
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> map) {
+        log.info("인증코드검증! map:{}",map);
+        Map<String, String> result = userService.verifyEmail(map);
+        return ResponseEntity.ok().body("인증 성공!");
+
+    }
+
+
     @GetMapping("/health-check")
     public String healthCheck() {
         String msg = "It's Working in User-service!\n";
@@ -196,6 +214,7 @@ public class UserController {
 
         return msg;
     }
+
 
 
 }
