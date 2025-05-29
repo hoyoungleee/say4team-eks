@@ -4,12 +4,15 @@ import com.playdata.userservice.common.auth.JwtTokenProvider;
 import com.playdata.userservice.common.auth.TokenRefreshRequestDto;
 import com.playdata.userservice.common.auth.TokenUserInfo;
 import com.playdata.userservice.common.dto.CommonResDto;
+import com.playdata.userservice.user.dto.KakaoUserDto;
 import com.playdata.userservice.user.dto.*;
 import com.playdata.userservice.user.entity.User;
 import com.playdata.userservice.user.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,10 +32,8 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 @Slf4j
+@RefreshScope // spring cloud config가 관리하는 파일의 데이터가 변경되면 빈들을 새로고침해주는 어노테이션
 public class UserController {
-
-
-
 
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -205,10 +207,53 @@ public class UserController {
 
     //카카오 콜백 요청 처리
     @GetMapping("/kakao")
-    public void kakaoCallback(@RequestParam String code) {
+    public void kakaoCallback(@RequestParam String code ,
+                              //응답을 평소처럼 주는게 아니라, 직접 커스텀 해서 클라이언트에게 전달
+                              HttpServletResponse response) throws IOException {
         log.info("카카오 콜백 처리 시작! code: {}", code);
 
-        userService.getKakaoAccessToken(code);
+
+        //인가 코드로 엑세스토큰받기
+        String kakaoAccessToken = userService.getKakaoAccessToken(code);
+        //엑세스 토큰으로 사용자 정보받기
+        KakaoUserDto dto = userService.getKakaoUserInfo(kakaoAccessToken);
+        // 회원가입 or 로그인 처리
+        UserResDto resDto = userService.findOrCreateKakaoUser(dto);
+
+        //JWT 토큰 생성( 우리 사이트 로그인 유지를 위해. 사용자 정보를 위해.)
+        String token = jwtTokenProvider.createToken(resDto.getEmail(), resDto.getRole().name());
+        String refreshToken = jwtTokenProvider.createRefreshToken(resDto.getEmail(), resDto.getRole().name());
+
+        //redis에 저장
+        redisTemplate.opsForValue().set("user:refresh:" + resDto.getUserid(), refreshToken, 2, TimeUnit.MINUTES);
+
+        //팝업 닫기
+        String html = String.format("""
+                <!DOCTYPE html>
+                <html>
+                <head><title>카카오 로그인 완료</title></head>
+                <body>
+                    <script>
+                        if (window.opener) {
+                            window.opener.postMessage({
+                                type: 'OAUTH_SUCCESS',
+                                token: '%s',
+                                id: '%s',
+                                role: '%s',
+                                provider: 'KAKAO'
+                            }, 'http://localhost:9090');
+                            window.close();
+                        } else {
+                            window.location.href = 'http://localhost:9090';
+                        }
+                    </script>
+                    <p>카카오 로그인 처리 중...</p>
+                </body>
+                </html>
+                """,
+                token, resDto.getUserid(), resDto.getRole().toString());
+        response.setContentType("text/html;charset=utf-8");
+        response.getWriter().write(html);
     }
 
 
@@ -219,6 +264,8 @@ public class UserController {
         msg += "token.secret: " + env.getProperty("token.secret");
         msg += "aws.accessKey: " + env.getProperty("aws.accessKey");
         msg += "aws.secretKey: " + env.getProperty("aws.secretKey");
+        msg += "message: " + env.getProperty("message");
+
 
         return msg;
     }

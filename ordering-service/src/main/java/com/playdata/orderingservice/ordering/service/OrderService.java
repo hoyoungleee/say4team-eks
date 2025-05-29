@@ -5,6 +5,7 @@ import com.playdata.orderingservice.client.UserServiceClient;
 import com.playdata.orderingservice.common.auth.Role;
 import com.playdata.orderingservice.common.auth.TokenUserInfo;
 import com.playdata.orderingservice.common.dto.CommonResDto;
+import com.playdata.orderingservice.ordering.controller.SseController;
 import com.playdata.orderingservice.ordering.dto.*;
 import com.playdata.orderingservice.ordering.entity.Order;
 import com.playdata.orderingservice.ordering.entity.OrderItem;
@@ -35,6 +36,8 @@ public class OrderService {
     private final UserServiceClient userServiceClient;
     private final ProductServiceClient productServiceClient;
     private final CartService cartService;
+
+    private final SseController sseController;
 
     // 주문 생성
     public Order createOrder(OrderRequestDto orderRequestDto, TokenUserInfo tokenUserInfo) {
@@ -122,9 +125,12 @@ public class OrderService {
 
         // 10. 주문 상태 업데이트
         order.setOrderStatus(OrderStatus.ORDERED); // 주문 완료 상태로 변경
-        orderRepository.save(order); // 변경된 상태 저장
+        Order save = orderRepository.save(order);// 변경된 상태 저장
 
-        return order;
+        //관리자에게 주문이 생성되었다는 알림을 전송
+        sseController.sendOrderMessage(save);
+
+        return save;
     }
 
     // 사용자 전체 주문 조회

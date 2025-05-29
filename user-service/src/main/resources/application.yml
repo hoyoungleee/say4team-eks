@@ -5,8 +5,17 @@ server:
 spring:
   application:
     name: user-service
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin123
 
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, busrefresh, beans
 
 
 

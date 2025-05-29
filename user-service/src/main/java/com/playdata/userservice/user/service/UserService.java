@@ -1,10 +1,12 @@
 package com.playdata.userservice.user.service;
 
 import com.playdata.userservice.common.auth.TokenUserInfo;
+import com.playdata.userservice.user.dto.KakaoUserDto;
 import com.playdata.userservice.user.dto.UserLoginReqDto;
 import com.playdata.userservice.user.dto.UserResDto;
 import com.playdata.userservice.user.dto.UserSaveReqDto;
 import com.playdata.userservice.user.dto.UserUpdateRequestDto;
+import com.playdata.userservice.user.entity.Role;
 import com.playdata.userservice.user.entity.User;
 import com.playdata.userservice.user.entity.UserStatus;
 import com.playdata.userservice.user.repository.UserRepository;
@@ -30,6 +32,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +55,7 @@ public class UserService {
     private static final String VERIFYCATION_ATTEMPT_KEY = "email_verify:attempt:";
     private static final String VERIFYCATION_BLOCK_KEY = "email_verify:block:";
 
-    @Value("${oauth2.kakao.client-id")
+    @Value("${oauth2.kakao.client-id}")
     private String kakaoClientId;
     @Value("${oauth2.kakao.redirect-uri}")
     private String redirectUri;
@@ -261,21 +265,21 @@ public class UserService {
     }
 
     // 인가 코드로 카카오 엑세스 토큰 받기
-    public void getKakaoAccessToken(String code) {
+    public String getKakaoAccessToken(String code) {
         RestTemplate restTemplate = new RestTemplate();
 
-        String requestUri = "https://kakao.com/oauth2/access_token";
+        String requestUri = "https://kauth.kakao.com/oauth/token";
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
+        System.out.println(redirectUri);
+        System.out.println(kakaoClientId);
 
         //바디정보 세팅
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("code", code);
-        params.add("client_id", "kakao");
-        params.add("redirect_uri", "http://kakao.com/oauth/authorize");
         params.add("redirect_uri", redirectUri);
         params.add("client_id", kakaoClientId );
 
@@ -300,6 +304,57 @@ public class UserService {
 
         log.info("응답 데이터:{}", reponseJSON);
 
+        // Access Token 추출  (카카오 로그인 중인 사용자의 정보를 요청할 때 필요한 토큰)
+        String accessToken = (String)reponseJSON.get("access_token");
+        return accessToken;
+
+    }
+
+
+    //Access Token으로 사용자 정보 얻어오기!
+    public KakaoUserDto getKakaoUserInfo(String kakaoAccessToken) {
+        String requestUri = "https://kapi.kakao.com/v2/user/me";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+        headers.add("Authorization", "Bearer " + kakaoAccessToken);
+
+        //요청보내기
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<KakaoUserDto> response = restTemplate.exchange(
+                requestUri, HttpMethod.POST, new HttpEntity<>(headers), KakaoUserDto.class
+        );
+
+        KakaoUserDto dto = response.getBody();
+        log.info("응답된 사용자 정보:{}", dto);
+
+        return dto;
+
+    }
+
+    public UserResDto findOrCreateKakaoUser(KakaoUserDto dto) {
+        //카카오 ID로 기존 사용자 찾기
+
+        Optional<User> existingUser = userRepository.findBySocialProviderAndSocialId("KAKAO", dto.getId().toString());
+
+        if (existingUser.isPresent()) {
+            User foundUser = existingUser.get();
+            return foundUser.fromEntity();
+        }else{ // 처음 로그인 한사람이면 -> 새로 사용자 생성
+            User kakao = User.builder()
+                    .email(dto.getAccount().getEmail())
+                    .name(dto.getProperties().getNickname())
+                    .profileImage(dto.getProperties().getProfileImage())
+                    .role(Role.ADMIN)
+                    .socialProvider("KAKAO")
+                    .socialId(dto.getId().toString())
+                    .password(null)// 외부 로그인이라 정보없음.
+                    .address(null) // 필요하다면 따로 페이지 만들기
+                    .registeredAt(LocalDateTime.now())
+                    .build();
+            User saved = userRepository.save(kakao);
+            return saved.fromEntity();
+        }
     }
 }
 
