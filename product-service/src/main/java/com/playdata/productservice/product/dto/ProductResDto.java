@@ -3,6 +3,7 @@ package com.playdata.productservice.product.dto;
 import com.playdata.productservice.product.entity.Product;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter @Setter @ToString
@@ -22,6 +23,9 @@ public class ProductResDto {
 
     private List<String> productImages;
 
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+
     public static ProductResDto fromEntity(Product product) {
         return ProductResDto.builder()
                 .id(product.getProductId())
@@ -33,6 +37,8 @@ public class ProductResDto {
                 .thumbnailPath(product.getThumbnailPath())
                 .categoryId(product.getCategory().getCategoryId())
                 .categoryName(product.getCategory().getName())
+                .createTime(product.getCreateTime())
+                .updateTime(product.getUpdateTime())
                 .build();
     }
 }

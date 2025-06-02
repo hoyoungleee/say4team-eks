@@ -38,6 +38,9 @@ public class Review extends BaseTimeEntity {
     @Column(length = 1000, nullable = false)
     private String mediaUrl;
 
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+
     public static ReviewResDto fromEntity(Review review) {
         return ReviewResDto.builder()
                 .reviewId(review.getReviewId())
@@ -46,6 +49,8 @@ public class Review extends BaseTimeEntity {
                 .name(review.getUserName())
                 .email(review.getUserEmail())
                 .mediaUrl(review.getMediaUrl())
+                .createTime( review.getCreateTime())
+                .updateTime( review.getUpdateTime())
                 .build();
     }
 }

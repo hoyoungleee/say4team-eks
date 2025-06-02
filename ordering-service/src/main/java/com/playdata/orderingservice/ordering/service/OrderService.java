@@ -13,7 +13,6 @@ import com.playdata.orderingservice.ordering.entity.OrderStatus;
 import com.playdata.orderingservice.ordering.mapper.OrderMapper;
 import com.playdata.orderingservice.ordering.repository.OrderRepository;
 import com.playdata.orderingservice.cart.service.CartService;
-import com.playdata.orderingservice.cart.dto.CartItemDto;
 import com.playdata.orderingservice.cart.dto.CartResponseDto;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,7 @@ public class OrderService {
     private final SseController sseController;
 
     // 주문 생성
-    public void createOrder(OrderRequestDto orderRequestDto, TokenUserInfo tokenUserInfo) {
+    public Order createOrder(OrderRequestDto orderRequestDto, TokenUserInfo tokenUserInfo) {
         String userEmail = tokenUserInfo.getEmail();
         if (userEmail == null) {
             throw new RuntimeException("토큰에서 사용자 정보를 가져올 수 없습니다.");
@@ -125,13 +124,13 @@ public class OrderService {
 
         // 10. 주문 상태 업데이트
         order.setOrderStatus(OrderStatus.ORDERED); // 주문 완료 상태로 변경
-        orderRepository.save(order);// 변경된 상태 저장
+        Order save = orderRepository.save(order);// 변경된 상태 저장
+
 
         //관리자에게 주문이 생성되었다는 알림을 전송 <미구현>
-//        Order save = orderRepository.save(order);// 변경된 상태 저장
 //        sseController.sendOrderMessage(save);
 
-
+        return save;
     }
 
     // 사용자 전체 주문 조회

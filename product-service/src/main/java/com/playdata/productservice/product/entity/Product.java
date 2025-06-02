@@ -5,6 +5,7 @@ import com.playdata.productservice.product.dto.ProductResDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,9 @@ public class Product extends BaseTimeEntity {
 
     private String description;
 
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImages> productImages;
 
@@ -53,6 +57,8 @@ public class Product extends BaseTimeEntity {
                 .stockQuantity(stockQuantity)
                 .mainImagePath(mainImagePath)
                 .thumbnailPath(thumbnailPath)
+                .createTime(createTime)
+                .updateTime(updateTime)
                 .productImages(
                     this.productImages.stream()
                             .map(ProductImages::getImgUrl)

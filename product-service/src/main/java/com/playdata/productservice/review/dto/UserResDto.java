@@ -1,6 +1,6 @@
 package com.playdata.productservice.review.dto;
 
-import com.playdata.productservice.review.entity.Role;
+import com.playdata.productservice.qna.entity.Role;
 import lombok.*;
 
 import java.time.LocalDate;
