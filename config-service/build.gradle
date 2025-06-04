@@ -24,7 +24,8 @@ ext {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.cloud:spring-cloud-config-server'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+    //알림처리 용 rabbitmq 보류처리
+//    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
