@@ -3,5 +3,5 @@ spring:
     name: product-service
   cloud:
     config:
-      uri: http://localhost:8888
-      profile: dev
+      uri: http://config-service.default.svc.cluster.local:8888  # 쿠버네티스 용
+      profile: default

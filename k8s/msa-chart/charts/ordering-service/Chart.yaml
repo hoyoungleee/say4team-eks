@@ -2,7 +2,7 @@
 # v2 로 필수 지정 helm 3 이상부터 무조건 써야함
 
 apiVersion: v2
-name: ordering-service-chart
+name: ordering-service
 description: chart for deploying Ordering-service all services in the Spring Cloud MSA
 type: application
 version: 1.0.0
