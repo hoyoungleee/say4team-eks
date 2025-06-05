@@ -1,7 +1,5 @@
 // 자주 사용되는 필요한 변수를 전역으로 선언하는 것도 가능.
 def ecrLoginHelper = "docker-credential-ecr-login" // ECR credential helper 이름
-def deployHost = "172.31.9.208" // 배포 인스턴스의 private 주소
-
 // 젠킨스의 선언형 파이프라인 정의부 시작 (그루비 언어)
 pipeline {
     agent any // 어느 젠킨스 서버에서나 실행이 가능
@@ -135,31 +133,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy Changed Services to AWS EC2') {
-            steps {
-                sshagent(credentials: ["deploy-key"]) {
-                    sh """
-                        echo "[INFO] SCP docker-compose.yml 전송 중..."
-                        scp -vvv -o StrictHostKeyChecking=no docker-compose.yml ubuntu@${deployHost}:/home/ubuntu/docker-compose.yml
-
-                        echo "[INFO] SSH 접속 및 배포 실행..."
-                        ssh -v -o StrictHostKeyChecking=no ubuntu@${deployHost} '
-                            set -e  # 에러 발생 시 즉시 종료
-                            cd /home/ubuntu && \\
-                            echo "[INFO] ECR 로그인 중..." && \\
-                            aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_URL} && \\
-                            echo "[INFO] 이미지 Pull 중: ${env.CHANGED_SERVICES}" && \\
-                            docker-compose pull ${env.CHANGED_SERVICES.replace(",", " ")} && \\
-                            echo "[INFO] 서비스 재시작 중..." && \\
-                            docker-compose up -d ${env.CHANGED_SERVICES.replace(",", " ")}
-                        '
-                    """
-                }
-            }
-        }
-
-
     }
 }
 
