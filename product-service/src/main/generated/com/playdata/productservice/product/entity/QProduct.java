@@ -26,8 +26,7 @@ public class QProduct extends EntityPathBase<Product> {
 
     public final QCategory category;
 
-    //inherited
-    public final DateTimePath<java.time.LocalDateTime> createTime = _super.createTime;
+    public final DateTimePath<java.time.LocalDateTime> createTime = createDateTime("createTime", java.time.LocalDateTime.class);
 
     public final StringPath description = createString("description");
 
@@ -45,8 +44,7 @@ public class QProduct extends EntityPathBase<Product> {
 
     public final StringPath thumbnailPath = createString("thumbnailPath");
 
-    //inherited
-    public final DateTimePath<java.time.LocalDateTime> updateTime = _super.updateTime;
+    public final DateTimePath<java.time.LocalDateTime> updateTime = createDateTime("updateTime", java.time.LocalDateTime.class);
 
     public QProduct(String variable) {
         this(Product.class, forVariable(variable), INITS);
