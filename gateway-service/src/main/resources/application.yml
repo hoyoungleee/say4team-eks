@@ -6,10 +6,9 @@ spring:
   application:
     name: gateway-service
   rabbitmq:
-    host: localhost
-    port: 5672
+    addresses: amqps://b-b05c6a4a-0c54-4218-aca3-99202806c464.mq.ap-northeast-2.on.aws:5671
     username: admin
-    password: admin123
+    password: admin1234567
   cloud:
     gateway:
       globalcors:
